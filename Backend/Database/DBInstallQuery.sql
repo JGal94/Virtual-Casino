@@ -3,15 +3,15 @@ USE Casino
 GO
 
 /* ===========================================================
-   CASINO VIRTUAL – INSTALL (SQL Server)
-   Esquema + TVPs + SPs + On-chain + Seeds + Auditoría
+   CASINO VIRTUAL ï¿½ INSTALL (SQL Server)
+   Esquema + TVPs + SPs + On-chain + Seeds + Auditorï¿½a
    =========================================================== */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 GO
 
 /* ===========================================================
-   0) ESQUEMA (Tablas básicas)
+   0) ESQUEMA (Tablas bï¿½sicas)
    =========================================================== */
 IF OBJECT_ID('dbo.Usuarios','U') IS NULL
 BEGIN
@@ -181,7 +181,7 @@ BEGIN
 END
 GO
 
-/* --- Pagos (Depósitos / Retiros) --- */
+/* --- Pagos (Depï¿½sitos / Retiros) --- */
 IF OBJECT_ID('dbo.ProveedoresPago','U') IS NULL
 BEGIN
   CREATE TABLE dbo.ProveedoresPago(
@@ -253,7 +253,7 @@ BEGIN
 END
 GO
 
-/* --- Verificación por email (tokens) --- */
+/* --- Verificaciï¿½n por email (tokens) --- */
 IF OBJECT_ID('dbo.VerificationToken','U') IS NULL
 BEGIN
   CREATE TABLE dbo.VerificationToken(
@@ -276,7 +276,7 @@ BEGIN
 END
 GO
 
-/* --- Política on-chain por moneda (confirmaciones requeridas) --- */
+/* --- Polï¿½tica on-chain por moneda (confirmaciones requeridas) --- */
 IF OBJECT_ID('dbo.CryptoNetworkPolicy','U') IS NULL
 BEGIN
   CREATE TABLE dbo.CryptoNetworkPolicy(
@@ -306,7 +306,7 @@ IF TYPE_ID('dbo.TVP_ApuestaDetalle') IS NULL
 GO
 
 /* ===========================================================
-   2) SPs – Usuarios / Verificación
+   2) SPs ï¿½ Usuarios / Verificaciï¿½n
    =========================================================== */
 CREATE OR ALTER PROCEDURE dbo.usp_Usuario_Crear
   @Email NVARCHAR(256),
@@ -316,7 +316,7 @@ AS
 BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON;
   IF EXISTS (SELECT 1 FROM dbo.Usuarios WHERE Email=@Email)
-    THROW 50050, N'El email ya está registrado.', 1;
+    THROW 50050, N'El email ya estï¿½ registrado.', 1;
 
   INSERT INTO dbo.Usuarios(Email, HashPwd, Activo, EmailVerificado, FechaAlta)
   VALUES(@Email, @HashPwd, 0, 0, SYSUTCDATETIME());
@@ -384,8 +384,8 @@ BEGIN
   WHERE UserId=@UserId AND Purpose=@Purpose AND Status=0
   ORDER BY SentAt DESC;
 
-  IF @TokenId IS NULL BEGIN SET @Ok=0; SET @Mensaje=N'No hay código pendiente.'; RETURN; END
-  IF @ExpiresAt<=@now BEGIN UPDATE dbo.VerificationToken SET Status=2 WHERE TokenId=@TokenId; SET @Ok=0; SET @Mensaje=N'Código expirado.'; RETURN; END
+  IF @TokenId IS NULL BEGIN SET @Ok=0; SET @Mensaje=N'No hay cï¿½digo pendiente.'; RETURN; END
+  IF @ExpiresAt<=@now BEGIN UPDATE dbo.VerificationToken SET Status=2 WHERE TokenId=@TokenId; SET @Ok=0; SET @Mensaje=N'Cï¿½digo expirado.'; RETURN; END
   IF @Attempts>=@MaxAttempts BEGIN UPDATE dbo.VerificationToken SET Status=3 WHERE TokenId=@TokenId; SET @Ok=0; SET @Mensaje=N'Demasiados intentos.'; RETURN; END
 
   DECLARE @calc VARBINARY(32)=HASHBYTES('SHA2_256', @Salt + CONVERT(VARBINARY(100),@Code));
@@ -400,13 +400,13 @@ BEGIN
     UPDATE dbo.VerificationToken
       SET Attempts=Attempts+1, Status=CASE WHEN Attempts+1>=MaxAttempts THEN 3 ELSE Status END
     WHERE TokenId=@TokenId;
-    SET @Ok=0; SET @Mensaje=N'Código incorrecto.';
+    SET @Ok=0; SET @Mensaje=N'Cï¿½digo incorrecto.';
   END
 END
 GO
 
 /* ===========================================================
-   3) SPs – Cuentas & Contabilidad
+   3) SPs ï¿½ Cuentas & Contabilidad
    =========================================================== */
 CREATE OR ALTER PROCEDURE dbo.usp_Cuenta_Abrir
   @IdUsuario INT, @IdMoneda INT, @IdCuenta BIGINT OUTPUT
@@ -474,7 +474,7 @@ END
 GO
 
 /* ===========================================================
-   4) SPs – Juegos / Rondas / Apuestas
+   4) SPs ï¿½ Juegos / Rondas / Apuestas
    =========================================================== */
 CREATE OR ALTER PROCEDURE dbo.usp_Mesa_Abrir
   @IdJuego INT, @Nombre NVARCHAR(80), @IdMesa INT OUTPUT
@@ -528,7 +528,7 @@ BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON;
   SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
-  IF @Importe<=0 THROW 50010, N'Importe inválido.', 1;
+  IF @Importe<=0 THROW 50010, N'Importe invï¿½lido.', 1;
 
   DECLARE @estado NVARCHAR(20)=(SELECT Estado FROM dbo.Rondas WHERE IdRonda=@IdRonda);
   IF @estado IS NULL OR @estado<>N'open' THROW 50011, N'Ronda no abierta.', 1;
@@ -598,14 +598,14 @@ END
 GO
 
 /* ===========================================================
-   5) SPs – Depósitos / Retiros
+   5) SPs ï¿½ Depï¿½sitos / Retiros
    =========================================================== */
 CREATE OR ALTER PROCEDURE dbo.usp_Deposito_Iniciar
   @IdUsuario INT,@IdMetodo INT,@IdMoneda INT,@Monto DECIMAL(38,8),@IdDeposito BIGINT OUTPUT
 AS
 BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON;
-  IF @Monto<=0 THROW 50030, N'Monto inválido.', 1;
+  IF @Monto<=0 THROW 50030, N'Monto invï¿½lido.', 1;
   INSERT INTO dbo.Depositos(IdUsuario,IdMetodo,IdMoneda,Monto,Estado,Ts) VALUES(@IdUsuario,@IdMetodo,@IdMoneda,@Monto,N'pending',SYSUTCDATETIME());
   SET @IdDeposito=SCOPE_IDENTITY();
 END
@@ -625,9 +625,9 @@ BEGIN
   DECLARE @estado NVARCHAR(20),@IdUsuario INT,@IdMoneda INT,@m DECIMAL(38,8);
   SELECT @estado=Estado,@IdUsuario=IdUsuario,@IdMoneda=IdMoneda,@m=Monto FROM dbo.Depositos WHERE IdDeposito=@IdDep;
 
-  IF @estado IS NULL THROW 50032, N'Depósito no existe.', 1;
+  IF @estado IS NULL THROW 50032, N'Depï¿½sito no existe.', 1;
   IF @estado=N'confirmed' RETURN;
-  IF @estado<>N'pending' THROW 50033, N'Estado no válido.', 1;
+  IF @estado<>N'pending' THROW 50033, N'Estado no vï¿½lido.', 1;
   IF @Monto IS NOT NULL AND @Monto<>@m THROW 50034, N'Monto no coincide.', 1;
 
   DECLARE @IdCuentaUsuario BIGINT=(SELECT IdCuenta FROM dbo.Cuentas WHERE IdUsuario=@IdUsuario AND IdMoneda=@IdMoneda);
@@ -649,7 +649,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Retiro_Solicitar
 AS
 BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON; SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-  IF @Monto<=0 THROW 50040, N'Monto inválido.', 1;
+  IF @Monto<=0 THROW 50040, N'Monto invï¿½lido.', 1;
   DECLARE @IdCuentaUsuario BIGINT=(SELECT IdCuenta FROM dbo.Cuentas WHERE IdUsuario=@IdUsuario AND IdMoneda=@IdMoneda);
   IF @IdCuentaUsuario IS NULL THROW 50041, N'Cuenta del usuario no existe.', 1;
 
@@ -662,7 +662,7 @@ BEGIN
 
     DECLARE @Movs dbo.TVP_Movimiento,@IdAsiento BIGINT,@Ref NVARCHAR(100);
     SET @Ref=N'RETIRO_REQ-' + CONVERT(NVARCHAR(40),@IdRetiro);
-    INSERT INTO @Movs(IdCuenta,Debe,Haber) VALUES(@IdCuentaCasaRetencion,@Monto,0); -- retención en casa
+    INSERT INTO @Movs(IdCuenta,Debe,Haber) VALUES(@IdCuentaCasaRetencion,@Monto,0); -- retenciï¿½n en casa
     INSERT INTO @Movs(IdCuenta,Debe,Haber) VALUES(@IdCuentaUsuario,0,@Monto);
     EXEC dbo.usp_Asiento_CrearSimple @IdTipo=@IdTipoAsientoRetencion,@ReferenciaExterna=@Ref,@Movs=@Movs,@IdAsiento=@IdAsiento OUTPUT;
   COMMIT;
@@ -676,13 +676,13 @@ BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON;
   DECLARE @estado NVARCHAR(20)=(SELECT Estado FROM dbo.Retiros WHERE IdRetiro=@IdRetiro);
   IF @estado IS NULL THROW 50043, N'Retiro no existe.', 1;
-  IF @estado NOT IN (N'requested',N'approved') THROW 50044, N'Estado inválido.', 1;
+  IF @estado NOT IN (N'requested',N'approved') THROW 50044, N'Estado invï¿½lido.', 1;
   UPDATE dbo.Retiros SET Estado=N'paid', Ts=SYSUTCDATETIME() WHERE IdRetiro=@IdRetiro;
 END
 GO
 
 /* ===========================================================
-   6) SPs – On-chain (confirmaciones)
+   6) SPs ï¿½ On-chain (confirmaciones)
    =========================================================== */
 CREATE OR ALTER PROCEDURE dbo.usp_Crypto_Deposito_RegistrarConfirmacion
   @TxHash NVARCHAR(100), @NetworkCode NVARCHAR(10), @Confirmations INT,
@@ -702,7 +702,7 @@ BEGIN
     IF @IdDep IS NOT NULL UPDATE dbo.Depositos SET TxHash=@TxHash, NetworkCode=@NetworkCode WHERE IdDeposito=@IdDep;
   END
 
-  IF @IdDep IS NULL BEGIN SET @Ok=0; SET @Mensaje=N'No se encontró depósito para ese TxHash.'; RETURN; END
+  IF @IdDep IS NULL BEGIN SET @Ok=0; SET @Mensaje=N'No se encontrï¿½ depï¿½sito para ese TxHash.'; RETURN; END
 
   DECLARE @Estado NVARCHAR(20),@IdUsuario INT,@IdMoneda INT,@Monto DECIMAL(38,8);
   SELECT @Estado=Estado,@IdUsuario=IdUsuario,@IdMoneda=IdMoneda,@Monto=Monto FROM dbo.Depositos WHERE IdDeposito=@IdDep;
@@ -731,7 +731,7 @@ BEGIN
 
   EXEC dbo.usp_Deposito_Confirmar @IdDeposito=@IdDep,@ExternalId=@ExtId,@Monto=@Monto,@IdTipoAsiento=@IdTipoDeposito,@IdCuentaCasaCaja=@IdCuentaCasaCaja;
 
-  SET @Ok=1; SET @Mensaje=N'Depósito confirmado por confirmaciones.';
+  SET @Ok=1; SET @Mensaje=N'Depï¿½sito confirmado por confirmaciones.';
 END
 GO
 
@@ -765,7 +765,7 @@ BEGIN
     RETURN;
   END
 
-  SET @Ok=1; SET @Mensaje=N'TX registrada; sin confirmaciones suficientes aún.';
+  SET @Ok=1; SET @Mensaje=N'TX registrada; sin confirmaciones suficientes aï¿½n.';
 END
 GO
 
@@ -778,7 +778,7 @@ AS
 BEGIN
   SET NOCOUNT ON; SET XACT_ABORT ON;
 
-  -- Tipos de transacción mínimos
+  -- Tipos de transacciï¿½n mï¿½nimos
   MERGE dbo.TiposTransaccion AS t
   USING (VALUES(N'deposito'),(N'apuesta'),(N'premio'),(N'retencion'),(N'liberar_retencion')) s(N)
   ON t.Nombre=s.N
@@ -800,7 +800,7 @@ BEGIN
   FROM dbo.Monedas m
   WHERE NOT EXISTS(SELECT 1 FROM dbo.Cuentas c WHERE c.IdUsuario=@IdUsuarioCasa AND c.IdMoneda=m.IdMoneda);
 
-  -- Política on-chain por defecto
+  -- Polï¿½tica on-chain por defecto
   MERGE dbo.CryptoNetworkPolicy AS tgt
   USING (
     SELECT IdMoneda, CodigoISO,
@@ -818,7 +818,7 @@ BEGIN
   IF NOT EXISTS(SELECT 1 FROM dbo.Mesas WHERE Nombre=N'Mesa Crypto 1')
     INSERT INTO dbo.Mesas(IdJuego,Nombre,Estado) VALUES((SELECT IdJuego FROM dbo.Juegos WHERE Nombre=N'Ruleta Live'),N'Mesa Crypto 1',N'open');
 
-  -- Proveedores/métodos cripto
+  -- Proveedores/mï¿½todos cripto
   IF NOT EXISTS(SELECT 1 FROM dbo.ProveedoresPago WHERE Nombre=N'CryptoGateway') INSERT INTO dbo.ProveedoresPago(Nombre,Tipo) VALUES(N'CryptoGateway',N'crypto');
   IF NOT EXISTS(SELECT 1 FROM dbo.MetodosPago WHERE IdProveedorPago=(SELECT IdProveedorPago FROM dbo.ProveedoresPago WHERE Nombre=N'CryptoGateway'))
     INSERT INTO dbo.MetodosPago(IdProveedorPago,Config) VALUES((SELECT IdProveedorPago FROM dbo.ProveedoresPago WHERE Nombre=N'CryptoGateway'),N'hotWallet=on;withdraw=manual');
@@ -826,7 +826,7 @@ END
 GO
 
 /* ===========================================================
-   8) Vistas & Reportes (auditoría)
+   8) Vistas & Reportes (auditorï¿½a)
    =========================================================== */
 CREATE OR ALTER VIEW dbo.v_Saldos_UsuarioMoneda AS
 SELECT u.IdUsuario,u.Email,m.CodigoISO AS Moneda,c.IdCuenta,c.SaldoCache,
@@ -895,7 +895,7 @@ END
 GO
 
 /* ===========================================================
-   9) Post-install: Seed rápido (CASA + cripto + mesa)
+   9) Post-install: Seed rï¿½pido (CASA + cripto + mesa)
    =========================================================== */
 DECLARE @IdCasa INT;
 EXEC dbo.usp_Sistema_SeedBasico @IdUsuarioCasa=@IdCasa OUTPUT;
