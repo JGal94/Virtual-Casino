@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from routers import plinko, admin, wallet   # <- sin "app."
+from routers import plinko, admin, wallet, rounds   # <- sin "app."
 from fastapi.responses import RedirectResponse
 
 
@@ -9,6 +9,8 @@ app = FastAPI(title="Casino API (Crypto)")
 app.include_router(plinko.router)
 app.include_router(admin.router)
 app.include_router(wallet.router)
+app.include_router(rounds.router)
+
 
 
 @app.get("/", include_in_schema=False)
